@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B7AA1B66-8CAD-4C3C-87DE-89D18C4F9515}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TestClientConsole</RootNamespace>
+    <AssemblyName>TestClientConsole</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="App.Metrics.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812">
+      <HintPath>..\packages\App.Metrics.Abstractions.3.0.0\lib\net45\App.Metrics.Abstractions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="App.Metrics.Concurrency, Version=2.0.1.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812">
+      <HintPath>..\packages\App.Metrics.Concurrency.2.0.1\lib\net45\App.Metrics.Concurrency.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="App.Metrics.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812">
+      <HintPath>..\packages\App.Metrics.Core.3.0.0\lib\net452\App.Metrics.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="App.Metrics.Formatters.Ascii, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812">
+      <HintPath>..\packages\App.Metrics.Formatters.Ascii.3.0.0\lib\net452\App.Metrics.Formatters.Ascii.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="App.Metrics.Formatters.Json, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812">
+      <HintPath>..\packages\App.Metrics.Formatters.Json.3.0.0\lib\net452\App.Metrics.Formatters.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="App.Metrics.Reporting.Console, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812">
+      <HintPath>..\packages\App.Metrics.Reporting.Console.3.0.0\lib\net452\App.Metrics.Reporting.Console.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="App.Metrics.Reporting.TextFile, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0d5193a913d1b812">
+      <HintPath>..\packages\App.Metrics.Reporting.TextFile.3.0.0\lib\net452\App.Metrics.Reporting.TextFile.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Collections" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cassandra\Cassandra.csproj">
+      <Project>{cd3ece56-db5a-4c1d-8863-8d91dc21f321}</Project>
+      <Name>Cassandra</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+</Project>
