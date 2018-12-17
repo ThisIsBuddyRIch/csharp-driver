@@ -54,7 +54,7 @@ namespace TestClientConsole
             var cluster = Cluster.Builder()
                                  .AddContactPoints("127.0.0.1")
                                  .WithPort(9042)
-                                 .WithMetrics(metrics)
+                                 //.WithMetrics(metrics)
                                  .Build();
 
             // Connect to the nodes using a keyspace
@@ -66,7 +66,10 @@ namespace TestClientConsole
                 var table = new Table<Person>(session);
                 table.Insert(CreatePerson()).Execute();
                 var table1 = new Table<Person>(session1);
+
+                table1.Execute();
                 table1.Insert(CreatePerson());
+                session.Execute("Select * from driver_test.Persons");
                 Thread.Sleep(1000);
             }
         }

@@ -20,6 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cassandra.Mapping;
 using Cassandra.Mapping.Statements;
+using Cassandra.Metrics;
 using Cassandra.Tasks;
 
 namespace Cassandra.Data.Linq
@@ -158,6 +159,7 @@ namespace Cassandra.Data.Linq
             var session = GetTable().GetSession();
             var stmt = await _statementFactory.GetStatementAsync(session, Cql.New(cqlQuery, values))
                                               .ConfigureAwait(false);
+            stmt.MetricsTableMeta = new MetricsTableMeta(GetTable());
             this.CopyQueryPropertiesTo(stmt);
             var rs = await session.ExecuteAsync(stmt).ConfigureAwait(false);
             QueryTrace = rs.Info.QueryTrace;

@@ -48,7 +48,7 @@ namespace Cassandra.Requests
         private ISpeculativeExecutionPlan _executionPlan;
         private volatile Host _host;
         private volatile HashedWheelTimer.ITimeout _nextExecutionTimeout;
-        private readonly TimerContext? _requestTimer;
+        private TimerContext? _requestTimer;
 
         public Policies Policies { get; }
         public IExtendedRetryPolicy RetryPolicy { get; }
@@ -74,13 +74,7 @@ namespace Cassandra.Requests
             }
 
             _queryPlan = GetQueryPlan(session, statement, Policies).GetEnumerator();
-
-            if (session.Cluster.Configuration.Metrics.MetricsRoot?.Measure?.Timer != null)
-            {
-                _requestTimer =
-                    session.Cluster.Configuration.Metrics.MetricsRoot.Measure.Timer
-                           .Time(DriverMetricsRegistry.GetRequestTimer(session.Keyspace, "table"));
-            }
+            _requestTimer = session.Cluster.Configuration.Metrics.GetRequestTimerContext(statement?.MetricsTableMeta);
         }
 
         /// <summary>
