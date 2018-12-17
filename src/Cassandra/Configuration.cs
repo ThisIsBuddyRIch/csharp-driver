@@ -20,6 +20,7 @@ using App.Metrics;
 using Cassandra.Serialization;
 using Cassandra.Tasks;
 using Microsoft.IO;
+using Cassandra.Metrics;
 
 namespace Cassandra
 {
@@ -147,7 +148,7 @@ namespace Cassandra
         /// </summary>
         internal IEnumerable<ITypeSerializer> TypeSerializers { get; set; }
 
-        public IMetricsRoot Metrics { get; }
+        public MetricsManager Metrics { get; }
 
         internal Configuration() :
             this(Policies.DefaultPolicies,
@@ -202,7 +203,7 @@ namespace Cassandra
             // to create the instance.
             _bufferPool = new RecyclableMemoryStreamManager(16 * 1024, 256 * 1024, ProtocolOptions.MaximumFrameLength);
             _timer = new HashedWheelTimer();
-            Metrics = metricsRoot;
+            Metrics = new MetricsManager(metricsRoot);
         }
 
         /// <summary>

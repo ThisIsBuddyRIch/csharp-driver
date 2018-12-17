@@ -6,6 +6,8 @@ using App.Metrics;
 using App.Metrics.Formatters.Json;
 using App.Metrics.Reporting.Console;
 using Cassandra;
+using Cassandra.Data.Linq;
+using Cassandra.Mapping;
 
 namespace TestClientConsole
 {
@@ -20,27 +22,27 @@ namespace TestClientConsole
                                   options.FlushInterval = TimeSpan.FromSeconds(1);
                                   options.MetricsOutputFormatter = new MetricsJsonOutputFormatter();
                               }).Report.ToTextFile(
-                              options => {
+                              options =>
+                              {
                                   options.MetricsOutputFormatter = new MetricsJsonOutputFormatter();
                                   options.AppendMetricsToTextFile = true;
-                                  options.FlushInterval = TimeSpan.FromSeconds(20);
+                                  options.FlushInterval = TimeSpan.FromSeconds(1);
                                   options.OutputPathAndFileName = @"C:\metrics.txt";
                               })
                           .Build();
 
-            var task =  Task.Run(() =>
+            var task = Task.Run(() =>
             {
                 while (true)
                 {
                     var tasks = metrics.ReportRunner.RunAllAsync();
-                 
+
                     Task.WaitAll(tasks.ToArray());
-                    Thread.Sleep(5000);
+                    Thread.Sleep(1000);
                 }
-            
             });
-            
-        
+
+
             UseCassandra(metrics);
 
 
@@ -56,19 +58,27 @@ namespace TestClientConsole
                                  .Build();
 
             // Connect to the nodes using a keyspace
-            var session = cluster.Connect("system_distributed");
 
-            // Get name of a Cluster
-            Console.WriteLine("The cluster's name is: " + cluster.Metadata.ClusterName);
-
-            // Execute a query on a connection synchronously
-
-            session.Execute("use \"EDICoreKeyspace\"");
-            while (true)
+            foreach (var _ in Enumerable.Range(0, 100))
             {
-                var rs = session.Execute("SELECT * FROM document_circulation_bindings");
-                Thread.Sleep(2000);
+                var session = cluster.Connect("driver_test");
+                var session1 = cluster.Connect("driver_test");
+                var table = new Table<Person>(session);
+                table.Insert(CreatePerson()).Execute();
+                var table1 = new Table<Person>(session1);
+                table1.Insert(CreatePerson());
+                Thread.Sleep(1000);
             }
+        }
+
+        private static Person CreatePerson()
+        {
+            return new Person
+            {
+                UserId = Guid.NewGuid(),
+                Name = "Kirill",
+                Age = 10
+            };
         }
     }
 }

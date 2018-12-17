@@ -40,7 +40,7 @@ namespace Cassandra.Tests
                 NoneAuthProvider.Instance,
                 null,
                 queryOptions ?? DefaultQueryOptions,
-                new DefaultAddressTranslator());
+                new DefaultAddressTranslator(), null);
         }
 
         private static QueryOptions DefaultQueryOptions => new QueryOptions();
@@ -242,7 +242,7 @@ namespace Cassandra.Tests
                 Policies.DefaultSpeculativeExecutionPolicy, new NoTimestampGenerator());
             var config = new Configuration(
                 policies, new ProtocolOptions(), PoolingOptions.Create(), new SocketOptions(), new ClientOptions(),
-                NoneAuthProvider.Instance, null, new QueryOptions(), new DefaultAddressTranslator());
+                NoneAuthProvider.Instance, null, new QueryOptions(), new DefaultAddressTranslator(), null);
 
             var request = RequestHandler.GetRequest(statement, Serializer.Default, config);
             var bodyBuffer = GetBodyBuffer(request);
@@ -275,7 +275,7 @@ namespace Cassandra.Tests
                 Policies.DefaultSpeculativeExecutionPolicy, new NoTimestampGenerator());
             var config = new Configuration(
                 policies, new ProtocolOptions(), PoolingOptions.Create(), new SocketOptions(), new ClientOptions(),
-                NoneAuthProvider.Instance, null, new QueryOptions(), new DefaultAddressTranslator());
+                NoneAuthProvider.Instance, null, new QueryOptions(), new DefaultAddressTranslator(), null);
 
             var request = RequestHandler.GetRequest(statement, Serializer, config);
             var bodyBuffer = GetBodyBuffer(request);
@@ -309,7 +309,7 @@ namespace Cassandra.Tests
             }
             var config = new Configuration(
                 Policies.DefaultPolicies, new ProtocolOptions(), PoolingOptions.Create(), new SocketOptions(),
-                new ClientOptions(), NoneAuthProvider.Instance, null, new QueryOptions(), new DefaultAddressTranslator());
+                new ClientOptions(), NoneAuthProvider.Instance, null, new QueryOptions(), new DefaultAddressTranslator(), null);
 
             var request = RequestHandler.GetRequest(batch, Serializer, config);
             var bodyBuffer = GetBodyBuffer(request);
@@ -330,7 +330,7 @@ namespace Cassandra.Tests
             var config = new Configuration(
                 Policies.DefaultPolicies, new ProtocolOptions(), PoolingOptions.Create(), new SocketOptions(),
                 new ClientOptions(), NoneAuthProvider.Instance, null, new QueryOptions(),
-                new DefaultAddressTranslator());
+                new DefaultAddressTranslator(), null);
 
             var request = RequestHandler.GetRequest(batch, Serializer, config);
             var bodyBuffer = GetBodyBuffer(request);
@@ -368,7 +368,7 @@ namespace Cassandra.Tests
             var config = new Configuration(
                 policies, new ProtocolOptions(), PoolingOptions.Create(), new SocketOptions(),
                 new ClientOptions(), NoneAuthProvider.Instance, null, new QueryOptions(),
-                new DefaultAddressTranslator());
+                new DefaultAddressTranslator(), null);
 
             var request = RequestHandler.GetRequest(batch, Serializer, config);
             var bodyBuffer = GetBodyBuffer(request);
@@ -398,7 +398,7 @@ namespace Cassandra.Tests
             var config = new Configuration(
                 Policies.DefaultPolicies, new ProtocolOptions(), PoolingOptions.Create(), new SocketOptions(),
                 new ClientOptions(), NoneAuthProvider.Instance, null, new QueryOptions(),
-                new DefaultAddressTranslator());
+                new DefaultAddressTranslator(), null);
 
             var request = RequestHandler.GetRequest(batch, Serializer, config);
             var bodyBuffer = GetBodyBuffer(request);

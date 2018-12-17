@@ -75,7 +75,8 @@ namespace Cassandra.Tests
                 NoneAuthProvider.Instance,
                 null,
                 new QueryOptions(),
-                new DefaultAddressTranslator());
+                new DefaultAddressTranslator(), 
+                null);
             return config;
         }
 

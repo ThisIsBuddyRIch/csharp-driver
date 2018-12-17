@@ -106,7 +106,7 @@ namespace Cassandra.Tests
                  NoneAuthProvider.Instance,
                  null,
                  new QueryOptions(),
-                 translatorMock.Object);
+                 translatorMock.Object, null);
             var cc = NewInstance(config, metadata);
             cc.Host = TestHelper.CreateHost("127.0.0.1");
             metadata.AddHost(cc.Host.Address);

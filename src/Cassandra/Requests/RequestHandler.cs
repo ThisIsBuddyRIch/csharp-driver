@@ -48,7 +48,7 @@ namespace Cassandra.Requests
         private ISpeculativeExecutionPlan _executionPlan;
         private volatile Host _host;
         private volatile HashedWheelTimer.ITimeout _nextExecutionTimeout;
-        private TimerContext? _requestTimer;
+        private readonly TimerContext? _requestTimer;
 
         public Policies Policies { get; }
         public IExtendedRetryPolicy RetryPolicy { get; }
@@ -75,10 +75,11 @@ namespace Cassandra.Requests
 
             _queryPlan = GetQueryPlan(session, statement, Policies).GetEnumerator();
 
-            if (session.Cluster.Configuration.Metrics?.Measure?.Timer != null)
+            if (session.Cluster.Configuration.Metrics.MetricsRoot?.Measure?.Timer != null)
             {
                 _requestTimer =
-                    session.Cluster.Configuration.Metrics.Measure.Timer.Time(DriverMetricsRegistry.RequestTimer);
+                    session.Cluster.Configuration.Metrics.MetricsRoot.Measure.Timer
+                           .Time(DriverMetricsRegistry.GetRequestTimer(session.Keyspace, "table"));
             }
         }
 
@@ -137,6 +138,8 @@ namespace Cassandra.Requests
             if (statement is BoundStatement)
             {
                 var s = (BoundStatement) statement;
+                
+                    
                 var options = QueryProtocolOptions.CreateFromQuery(serializer.ProtocolVersion, s, config.QueryOptions, config.Policies);
                 request = new ExecuteRequest(serializer.ProtocolVersion, s.PreparedStatement.Id, null, s.IsTracing, options);
             }
@@ -399,6 +402,7 @@ namespace Cassandra.Requests
             }
             catch (NoHostAvailableException ex)
             {
+                _session.Cluster.Configuration.Metrics.IncrementNoHostAvailableErrorCounter();
                 if (_running.Count == 0)
                 {
                     //Its the sending of the first execution

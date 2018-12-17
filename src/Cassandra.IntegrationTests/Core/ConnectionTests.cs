@@ -428,7 +428,7 @@ namespace Cassandra.IntegrationTests.Core
                  NoneAuthProvider.Instance,
                  null,
                  new QueryOptions(),
-                 new DefaultAddressTranslator());
+                 new DefaultAddressTranslator(), null);
             using (var connection = CreateConnection(GetProtocolVersion(), config))
             {
                 var ex = Assert.Throws<AggregateException>(() => connection.Open().Wait(10000));
@@ -621,7 +621,7 @@ namespace Cassandra.IntegrationTests.Core
                 NoneAuthProvider.Instance,
                 null,
                 new QueryOptions(),
-                new DefaultAddressTranslator());
+                new DefaultAddressTranslator(), null);
             using (var connection = new Connection(new Serializer(GetProtocolVersion()), new IPEndPoint(new IPAddress(new byte[] { 1, 1, 1, 1 }), 9042), config))
             {
                 var ex = Assert.Throws<SocketException>(() => TaskHelper.WaitToComplete(connection.Open()));
@@ -823,7 +823,7 @@ namespace Cassandra.IntegrationTests.Core
                 NoneAuthProvider.Instance,
                 null,
                 new QueryOptions(),
-                new DefaultAddressTranslator());
+                new DefaultAddressTranslator(), null);
             return CreateConnection(GetProtocolVersion(), config);
         }
 
