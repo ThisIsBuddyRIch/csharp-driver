@@ -164,25 +164,35 @@ namespace Cassandra
             _metadata.ControlConnection = _controlConnection;
             _serializer = _controlConnection.Serializer;
 
+            ConfigureMetrics(configuration);
+        }
+
+        private void ConfigureMetrics(Configuration configuration)
+        {
             configuration.Metrics.RegisterConnectedSessionGauge(() => _connectedSessions.Count);
             configuration.Metrics.RegisterKnownHostsGauge(() => AllHosts().Count);
             configuration.Metrics.RegisterConnectedToHostsGauge(() =>
-                {
-                    return _connectedSessions.SelectMany(x => x.GetPools().Select(pool => pool.Key))
-                                             .Distinct().ToArray().Length;
-                });
-            
+            {
+                return _connectedSessions.SelectMany(x => x.GetPools().Select(pool => pool.Key))
+                                         .Distinct().ToArray().Length;
+            });
+
             configuration.Metrics.RegisterOpenConnectionGauge(() =>
             {
                 var result = _controlConnection.Address != null ? 1 : 0;
-                result +=  _connectedSessions.SelectMany(x => x.GetPools().Select(pool => pool.Value.OpenConnections)).Sum();
+                result += _connectedSessions.SelectMany(s => s.GetPools().Select(pool => pool.Value.OpenConnections)).Sum();
                 return result;
             });
-            
+
             configuration.Metrics
                          .RegisterInFlightRequestGauge(() =>
-                             _connectedSessions.SelectMany(x => x.GetPools().Select(pool => pool.Value.InFlight)).Sum());
-            
+                             _connectedSessions.SelectMany(s => s.GetPools().Select(pool => pool.Value.InFlight)).Sum());
+            configuration.Metrics
+                         .RegisterWriteQueueLengthGauge(() =>
+                             _connectedSessions.SelectMany(s => s.GetPools().Select(pool => pool.Value.WriteQueueLength)).Sum());
+            configuration.Metrics
+                         .RegisterFreeOperationsLengthGauge(() =>
+                             _connectedSessions.SelectMany(s => s.GetPools().Select(pool => pool.Value.FreeOperationsLength)).Sum());
         }
 
         /// <summary>
@@ -363,7 +373,7 @@ namespace Cassandra
 
             var session = new Session(this, Configuration, keyspace, _serializer);
             await session.Init().ConfigureAwait(false);
-            
+
             _connectedSessions.Add(session);
             _logger.Info("Session connected ({0})", session.GetHashCode());
             return session;

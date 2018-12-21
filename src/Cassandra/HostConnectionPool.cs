@@ -102,6 +102,16 @@ namespace Cassandra
         public int InFlight => _connections.Sum(c => c.InFlight);
 
         /// <summary>
+        /// Gets the total of write queue deep length on all connections. 
+        /// </summary>
+        public int WriteQueueLength => _connections.Sum(c => c.WriteQueueLength);
+        
+        /// <summary>
+        /// Gets the total of amount of available stream ids on all connections. 
+        /// </summary>
+        public int FreeOperationsLength => _connections.Sum(c => c.FreeOperationsLength);
+        
+        /// <summary>
         /// Determines whether the pool is not on the initial state.
         /// </summary>
         private bool IsClosing => Volatile.Read(ref _state) != PoolState.Init;

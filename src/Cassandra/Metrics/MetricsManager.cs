@@ -32,8 +32,6 @@ namespace Cassandra.Metrics
             _root = root;
         }
 
-        public IMetricsRoot MetricsRoot => _root;
-
         public bool IsMetricsEnabled => _root != null;
 
         public void RegisterKnownHostsGauge(Func<double> valueProvider)
@@ -65,6 +63,19 @@ namespace Cassandra.Metrics
             if(!IsMetricsEnabled) return;
             _root.Measure.Gauge.SetValue(DriverMetricsRegistry.InFlightRequests, valueProvider);
         }
+
+        public void RegisterWriteQueueLengthGauge(Func<double> valueProvider)
+        {
+            if(!IsMetricsEnabled) return;
+            _root.Measure.Gauge.SetValue(DriverMetricsRegistry.WriteQueueLength, valueProvider);
+        }
+
+        public void RegisterFreeOperationsLengthGauge(Func<double> valueProvider)
+        {
+            if(!IsMetricsEnabled) return;
+            _root.Measure.Gauge.SetValue(DriverMetricsRegistry.FreeOperationsLength, valueProvider);
+        }
+
 
         public TimerContext? GetClusterConnectTimer()
         {
@@ -116,6 +127,7 @@ namespace Cassandra.Metrics
             if(!IsMetricsEnabled) return;
             _root.Measure.Counter.Increment(DriverMetricsRegistry.OtherErrors);
         }
+        
 
         public void ReportOnError(Exception ex)
         {

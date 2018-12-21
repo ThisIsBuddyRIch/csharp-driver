@@ -57,6 +57,19 @@ namespace Cassandra.Metrics
             Name = "in-flight-requests",
             MeasurementUnit = Unit.Requests
         };
+        
+        
+        public static GaugeOptions WriteQueueLength = new GaugeOptions
+        {
+            Name = "write-queue-length",
+            MeasurementUnit = Unit.Requests
+        };
+        
+        public static GaugeOptions FreeOperationsLength = new GaugeOptions
+        {
+            Name = "free-operations-length",
+            MeasurementUnit = Unit.Items
+        };
 
         public static CounterOptions NoHostAvailableErrors = new CounterOptions
         {
