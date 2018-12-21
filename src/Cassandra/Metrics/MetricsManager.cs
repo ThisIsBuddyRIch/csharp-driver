@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using App.Metrics;
 using App.Metrics.Timer;
@@ -25,11 +26,21 @@ namespace Cassandra.Metrics
     public class MetricsManager
     {
         private readonly IMetricsRoot _root;
-
-
+        private readonly ITimer _clusterConnectTimer;
+        private readonly ITimer _connectionOpenTimer;
+        private readonly ITimer _writeQueueTimer;
+        private readonly ITimer _pendingRequestTimer;
+        
         public MetricsManager(IMetricsRoot root)
         {
             _root = root;
+            if (IsMetricsEnabled)
+            {
+                _clusterConnectTimer = _root.Provider.Timer.Instance(DriverMetricsRegistry.ClusterConnectTimer);
+                _connectionOpenTimer = _root.Provider.Timer.Instance(DriverMetricsRegistry.ConnectionOpenTimer);
+                _writeQueueTimer = _root.Provider.Timer.Instance(DriverMetricsRegistry.WriteQueueTimer);
+                _pendingRequestTimer = _root.Provider.Timer.Instance(DriverMetricsRegistry.PendingRequestTimer);
+            }
         }
 
         public bool IsMetricsEnabled => _root != null;
@@ -80,7 +91,7 @@ namespace Cassandra.Metrics
         public TimerContext? GetClusterConnectTimer()
         {
             if (!IsMetricsEnabled) return null;
-            return _root.Measure.Timer.Time(DriverMetricsRegistry.ClusterConnectTimer);
+            return _clusterConnectTimer.NewContext();
         }
 
         public TimerContext? GetRequestTimerContext(MetricsTableMeta tableMeta)
@@ -95,19 +106,19 @@ namespace Cassandra.Metrics
         public TimerContext? GetConnectionOpenTimer()
         {
             if (!IsMetricsEnabled) return null;
-            return _root.Measure.Timer.Time(DriverMetricsRegistry.ConnectionOpenTimer);
+            return _connectionOpenTimer.NewContext();
         }
 
         public TimerContext? GetWriteQueueTimer()
         {
             if (!IsMetricsEnabled) return null;
-            return _root.Measure.Timer.Time(DriverMetricsRegistry.WriteQueueTimer);
+            return _writeQueueTimer.NewContext();
         }
 
         public TimerContext? GetPendingRequestTimer()
         {
             if (!IsMetricsEnabled) return null;
-            return _root.Measure.Timer.Time(DriverMetricsRegistry.PendingRequestTimer);
+            return _pendingRequestTimer.NewContext();
         }
 
         public void IncrementNoHostAvailableErrorCounter()

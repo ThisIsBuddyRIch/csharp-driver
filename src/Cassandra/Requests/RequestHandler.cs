@@ -21,7 +21,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using App.Metrics.Timer;
 using Cassandra.Collections;
 using Cassandra.Metrics;
 using Cassandra.Serialization;
@@ -48,7 +47,6 @@ namespace Cassandra.Requests
         private ISpeculativeExecutionPlan _executionPlan;
         private volatile Host _host;
         private volatile HashedWheelTimer.ITimeout _nextExecutionTimeout;
-        private TimerContext? _requestTimer;
 
         public Policies Policies { get; }
         public IExtendedRetryPolicy RetryPolicy { get; }
@@ -61,7 +59,7 @@ namespace Cassandra.Requests
         public RequestHandler(ISession session, Serializer serializer, IRequest request, IStatement statement)
         {
             _session = session ?? throw new ArgumentNullException(nameof(session));
-            _tcs = new TaskCompletionSourceWithMetrics<RowSet>(session.Cluster.Configuration.Metrics, statement.MetricsTableMeta);
+            _tcs = new TaskCompletionSourceWithMetrics<RowSet>(session.Cluster.Configuration.Metrics, statement?.MetricsTableMeta);
             _request = request;
             Serializer = serializer ?? throw new ArgumentNullException(nameof(session));
             Statement = statement;
@@ -74,7 +72,6 @@ namespace Cassandra.Requests
             }
 
             _queryPlan = GetQueryPlan(session, statement, Policies).GetEnumerator();
-            _requestTimer = session.Cluster.Configuration.Metrics.GetRequestTimerContext(statement.MetricsTableMeta);
         }
 
         /// <summary>
@@ -206,7 +203,6 @@ namespace Cassandra.Requests
             if (ex != null)
             {
                 _tcs.TrySetException(ex);
-                _requestTimer?.Dispose();
                 return true;
             }
 
@@ -219,7 +215,6 @@ namespace Cassandra.Requests
                     {
                         action();
                         _tcs.TrySetResult(result);
-                        _requestTimer?.Dispose();
                     }
                     catch (Exception actionEx)
                     {
@@ -230,7 +225,6 @@ namespace Cassandra.Requests
             }
 
             _tcs.TrySetResult(result);
-            _requestTimer?.Dispose();
             return true;
         }
 

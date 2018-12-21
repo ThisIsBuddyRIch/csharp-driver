@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 using System.Threading;
 using System.Threading.Tasks;
 using App.Metrics;
@@ -54,16 +55,21 @@ namespace TestClientConsole
             var cluster = Cluster.Builder()
                                  .AddContactPoints("127.0.0.1")
                                  .WithPort(9042)
-                                 //.WithMetrics(metrics)
+                                 .WithMetrics(metrics)
                                  .Build();
 
             // Connect to the nodes using a keyspace
 
+
+             
+            
             foreach (var _ in Enumerable.Range(0, 100))
             {
                 var session = cluster.Connect("driver_test");
+
                 var session1 = cluster.Connect("driver_test");
                 var table = new Table<Person>(session);
+                table.CreateIfNotExists();
                 table.Insert(CreatePerson()).Execute();
                 var table1 = new Table<Person>(session1);
 
