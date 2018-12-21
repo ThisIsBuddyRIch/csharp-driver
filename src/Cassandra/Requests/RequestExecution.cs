@@ -231,7 +231,6 @@ namespace Cassandra.Requests
         private void HandleException(Exception ex)
         {
             Logger.Info("RequestHandler received exception {0}", ex.ToString());
-            _session.Cluster.Configuration.Metrics.ReportOnError(ex);
             if (ex is PreparedQueryNotFoundException &&
                 (_parent.Statement is BoundStatement || _parent.Statement is BatchStatement))
             {

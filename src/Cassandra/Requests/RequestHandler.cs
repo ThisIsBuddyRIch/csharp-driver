@@ -40,7 +40,7 @@ namespace Cassandra.Requests
 
         private readonly IRequest _request;
         private readonly ISession _session;
-        private readonly TaskCompletionSource<RowSet> _tcs;
+        private readonly TaskCompletionSourceWithMetrics<RowSet> _tcs;
         private long _state;
         private readonly IEnumerator<Host> _queryPlan;
         private readonly object _queryPlanLock = new object();
@@ -60,8 +60,8 @@ namespace Cassandra.Requests
         /// </summary>
         public RequestHandler(ISession session, Serializer serializer, IRequest request, IStatement statement)
         {
-            _tcs = new TaskCompletionSource<RowSet>();
             _session = session ?? throw new ArgumentNullException(nameof(session));
+            _tcs = new TaskCompletionSourceWithMetrics<RowSet>(session.Cluster.Configuration.Metrics, statement.MetricsTableMeta);
             _request = request;
             Serializer = serializer ?? throw new ArgumentNullException(nameof(session));
             Statement = statement;
@@ -74,7 +74,7 @@ namespace Cassandra.Requests
             }
 
             _queryPlan = GetQueryPlan(session, statement, Policies).GetEnumerator();
-            _requestTimer = session.Cluster.Configuration.Metrics.GetRequestTimerContext(statement?.MetricsTableMeta);
+            _requestTimer = session.Cluster.Configuration.Metrics.GetRequestTimerContext(statement.MetricsTableMeta);
         }
 
         /// <summary>
