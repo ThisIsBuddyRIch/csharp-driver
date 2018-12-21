@@ -1,3 +1,4 @@
+using System.Threading;
 using App.Metrics;
 using App.Metrics.Counter;
 using App.Metrics.Gauge;
@@ -12,7 +13,7 @@ namespace Cassandra.Metrics
             return new TimerOptions
             {
                 Name = "request-timer",
-                MeasurementUnit = Unit.Items,
+                MeasurementUnit = Unit.Requests,
                 DurationUnit = TimeUnit.Milliseconds,
                 RateUnit = TimeUnit.Milliseconds,
                 Context = $"{keyspace}.{tableName}"
@@ -22,11 +23,34 @@ namespace Cassandra.Metrics
         public static TimerOptions ClusterConnectTimer = new TimerOptions
         {
             Name = "cluster-connect-timer",
-            MeasurementUnit = Unit.Items,
+            MeasurementUnit = Unit.Connections,
             DurationUnit = TimeUnit.Milliseconds,
             RateUnit = TimeUnit.Milliseconds
         };
 
+        public static TimerOptions ConnectionOpenTimer = new TimerOptions
+        {
+            Name = "open-connection-timer",
+            MeasurementUnit = Unit.Connections,
+            DurationUnit = TimeUnit.Milliseconds,
+            RateUnit = TimeUnit.Milliseconds
+        };
+
+        public static TimerOptions WriteQueueTimer = new TimerOptions
+        {
+            Name = "write-queue-timer",
+            MeasurementUnit = Unit.Requests,
+            DurationUnit = TimeUnit.Milliseconds,
+            RateUnit = TimeUnit.Milliseconds
+        };
+
+        public static TimerOptions PendingRequestTimer = new TimerOptions
+        {
+            Name="pending-timer-options",
+            MeasurementUnit = Unit.Requests,
+            DurationUnit = TimeUnit.Milliseconds,
+            RateUnit = TimeUnit.Milliseconds
+        };
 
         public static GaugeOptions ConnectedSessions = new GaugeOptions
         {

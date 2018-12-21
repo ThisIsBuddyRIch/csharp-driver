@@ -92,6 +92,24 @@ namespace Cassandra.Metrics
 
         }
 
+        public TimerContext? GetConnectionOpenTimer()
+        {
+            if (!IsMetricsEnabled) return null;
+            return _root.Measure.Timer.Time(DriverMetricsRegistry.ConnectionOpenTimer);
+        }
+
+        public TimerContext? GetWriteQueueTimer()
+        {
+            if (!IsMetricsEnabled) return null;
+            return _root.Measure.Timer.Time(DriverMetricsRegistry.WriteQueueTimer);
+        }
+
+        public TimerContext? GetPendingRequestTimer()
+        {
+            if (!IsMetricsEnabled) return null;
+            return _root.Measure.Timer.Time(DriverMetricsRegistry.PendingRequestTimer);
+        }
+
         public void IncrementNoHostAvailableErrorCounter()
         {
             if (!IsMetricsEnabled) return;

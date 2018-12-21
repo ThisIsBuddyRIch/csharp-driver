@@ -23,6 +23,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using App.Metrics.Timer;
 using Cassandra.Tasks;
 using Cassandra.Compression;
 using Cassandra.Requests;
@@ -443,6 +444,8 @@ namespace Cassandra
         /// <exception cref="UnsupportedProtocolVersionException"></exception>
         public async Task<Response> Open()
         {
+            var connectionOpenTimer = Configuration.Metrics.GetConnectionOpenTimer();
+            
             _freeOperations = new ConcurrentStack<short>(Enumerable.Range(0, MaxConcurrentRequests).Select(s => (short) s).Reverse());
             _pendingOperations = new ConcurrentDictionary<short, OperationState>();
             _writeQueue = new ConcurrentQueue<OperationState>();
@@ -490,14 +493,17 @@ namespace Cassandra
                 throw;
             }
 
-            if (response is AuthenticateResponse)
+            if (response is AuthenticateResponse authenticateResponse)
             {
-                return await StartAuthenticationFlow(((AuthenticateResponse) response).Authenticator)
+                var resultResponse =  await StartAuthenticationFlow(authenticateResponse.Authenticator)
                     .ConfigureAwait(false);
+                connectionOpenTimer?.Dispose();
+                return resultResponse;
             }
 
             if (response is ReadyResponse)
             {
+                connectionOpenTimer?.Dispose();
                 return response;
             }
 
@@ -603,6 +609,7 @@ namespace Cassandra
                 var state = header.Opcode != EventResponse.OpCode
                     ? RemoveFromPending(header.StreamId)
                     : new OperationState(EventHandler);
+               
                 stream.Write(buffer, offset, remainingBodyLength);
                 // State can be null when the Connection is being closed concurrently
                 // The original callback is being called with an error, use a Noop here
@@ -788,9 +795,12 @@ namespace Cassandra
             var state = new OperationState(callback)
             {
                 Request = request,
-                TimeoutMillis = timeoutMillis > 0 ? timeoutMillis : Configuration.SocketOptions.ReadTimeoutMillis
+                TimeoutMillis = timeoutMillis > 0 ? timeoutMillis : Configuration.SocketOptions.ReadTimeoutMillis,
+                WriteQueueTimer = Configuration.Metrics.GetWriteQueueTimer(),
             };
+            
             _writeQueue.Enqueue(state);
+            
             RunWriteQueue();
             return state;
         }
@@ -847,7 +857,8 @@ namespace Cassandra
                     state.InvokeCallback(new SocketException((int) SocketError.NotConnected));
                     break;
                 }
-
+                state.WriteQueueTimer?.Dispose();
+                state.PendingTimer = Configuration.Metrics.GetPendingRequestTimer();
                 _pendingOperations.AddOrUpdate(streamId, state, (k, oldValue) => state);
                 int frameLength;
                 try
@@ -915,6 +926,7 @@ namespace Cassandra
             if (_pendingOperations.TryRemove(streamId, out state))
             {
                 DecrementInFlight();
+                state.PendingTimer?.Dispose();
             }
 
             //Set the streamId as available

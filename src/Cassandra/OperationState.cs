@@ -14,14 +14,15 @@
 //   limitations under the License.
 //
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 ﻿using System.Threading;
 ﻿using System.Threading.Tasks;
-﻿using Cassandra.Requests;
+ using App.Metrics.Timer;
+ using Cassandra.Requests;
  using Cassandra.Responses;
  using Cassandra.Tasks;
 ﻿using Microsoft.IO;
@@ -62,6 +63,10 @@ namespace Cassandra
         {
             Volatile.Write(ref _callback, callback);
         }
+
+        public TimerContext? WriteQueueTimer { get; set; }
+
+        public TimerContext? PendingTimer { get; set; }
 
         /// <summary>
         /// Sets the read timeout associated with the request
