@@ -39,7 +39,7 @@ namespace TestClientConsole
                     var tasks = metrics.ReportRunner.RunAllAsync();
 
                     Task.WaitAll(tasks.ToArray());
-                    Thread.Sleep(1000);
+                    Thread.Sleep(50);
                 }
             });
 
@@ -61,23 +61,14 @@ namespace TestClientConsole
             // Connect to the nodes using a keyspace
 
 
-             
+
+            var session = cluster.Connect("driver_test");
+
+            var table = new Table<Person>(session);
+            table.CreateIfNotExists();
+
             
-            foreach (var _ in Enumerable.Range(0, 100))
-            {
-                var session = cluster.Connect("driver_test");
-
-                var session1 = cluster.Connect("driver_test");
-                var table = new Table<Person>(session);
-                table.CreateIfNotExists();
-                table.Insert(CreatePerson()).Execute();
-                var table1 = new Table<Person>(session1);
-
-                table1.Execute();
-                table1.Insert(CreatePerson());
-                session.Execute("Select * from driver_test.Persons");
-                Thread.Sleep(1000);
-            }
+            Parallel.ForEach(Enumerable.Range(0, 1000), (i, state) => table.Execute());
         }
 
         private static Person CreatePerson()

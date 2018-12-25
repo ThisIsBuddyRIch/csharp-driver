@@ -289,6 +289,7 @@ namespace Cassandra
                 }
                 catch (NoHostAvailableException)
                 {
+                    Configuration.Metrics.IncrementNoHostAvailableErrorCounter();
                     //No host available now, maybe later it can recover from
                     throw;
                 }
