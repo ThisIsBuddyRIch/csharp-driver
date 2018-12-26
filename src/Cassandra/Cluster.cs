@@ -23,7 +23,11 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using App.Metrics.Counter;
+using App.Metrics.Gauge;
+using App.Metrics.Timer;
 using Cassandra.Collections;
+using Cassandra.Metrics;
 using Cassandra.Requests;
 using Cassandra.Serialization;
 using Cassandra.Tasks;
@@ -37,6 +41,7 @@ namespace Cassandra
     public class Cluster : ICluster
     {
         private static ProtocolVersion _maxProtocolVersion = ProtocolVersion.MaxSupported;
+
         // ReSharper disable once InconsistentNaming
         private static readonly Logger _logger = new Logger(typeof(Cluster));
         private readonly CopyOnWriteList<Session> _connectedSessions = new CopyOnWriteList<Session>();
@@ -50,6 +55,7 @@ namespace Cassandra
 
         /// <inheritdoc />
         public event Action<Host> HostAdded;
+
         /// <inheritdoc />
         public event Action<Host> HostRemoved;
 
@@ -60,11 +66,11 @@ namespace Cassandra
         {
             return _controlConnection;
         }
-        
+
         /// <summary>
         /// Gets the the prepared statements cache
         /// </summary>
-        internal ConcurrentDictionary<byte[], PreparedStatement> PreparedQueries { get; } 
+        internal ConcurrentDictionary<byte[], PreparedStatement> PreparedQueries { get; }
             = new ConcurrentDictionary<byte[], PreparedStatement>(new ByteArrayComparer());
 
         /// <summary>
@@ -114,14 +120,15 @@ namespace Cassandra
         /// </summary>
         public static int MaxProtocolVersion
         {
-            get { return (int)_maxProtocolVersion; }
+            get { return (int) _maxProtocolVersion; }
             set
             {
-                if (value > (int)ProtocolVersion.MaxSupported)
+                if (value > (int) ProtocolVersion.MaxSupported)
                 {
                     // Ignore
                     return;
                 }
+
                 _maxProtocolVersion = (ProtocolVersion) value;
             }
         }
@@ -152,9 +159,40 @@ namespace Cassandra
             {
                 protocolVersion = Configuration.ProtocolOptions.MaxProtocolVersionValue.Value;
             }
+
             _controlConnection = new ControlConnection(protocolVersion, Configuration, _metadata);
             _metadata.ControlConnection = _controlConnection;
             _serializer = _controlConnection.Serializer;
+
+            ConfigureMetrics(configuration);
+        }
+
+        private void ConfigureMetrics(Configuration configuration)
+        {
+            configuration.Metrics.RegisterConnectedSessionGauge(() => _connectedSessions.Count);
+            configuration.Metrics.RegisterKnownHostsGauge(() => AllHosts().Count);
+            configuration.Metrics.RegisterConnectedToHostsGauge(() =>
+            {
+                return _connectedSessions.SelectMany(x => x.GetPools().Select(pool => pool.Key))
+                                         .Distinct().ToArray().Length;
+            });
+
+            configuration.Metrics.RegisterOpenConnectionGauge(() =>
+            {
+                var result = _controlConnection.Address != null ? 1 : 0;
+                result += _connectedSessions.SelectMany(s => s.GetPools().Select(pool => pool.Value.OpenConnections)).Sum();
+                return result;
+            });
+
+            configuration.Metrics
+                         .RegisterInFlightRequestGauge(() =>
+                             _connectedSessions.SelectMany(s => s.GetPools().Select(pool => pool.Value.InFlight)).Sum());
+            configuration.Metrics
+                         .RegisterWriteQueueLengthGauge(() =>
+                             _connectedSessions.SelectMany(s => s.GetPools().Select(pool => pool.Value.WriteQueueLength)).Sum());
+            configuration.Metrics
+                         .RegisterFreeOperationsLengthGauge(() =>
+                             _connectedSessions.SelectMany(s => s.GetPools().Select(pool => pool.Value.FreeOperationsLength)).Sum());
         }
 
         /// <summary>
@@ -199,13 +237,13 @@ namespace Cassandra
                     foreach (var resolvedAddress in hostEntry.AddressList)
                     {
                         _metadata.AddHost(new IPEndPoint(resolvedAddress, Configuration.ProtocolOptions.Port));
-                    }                    
+                    }
                 }
             }
 
             if (_metadata.Hosts.Count == 0)
             {
-                throw new NoHostAvailableException($"No host name could be resolved, attempted: {string.Join(", ", hostNames)}");                
+                throw new NoHostAvailableException($"No host name could be resolved, attempted: {string.Join(", ", hostNames)}");
             }
         }
 
@@ -219,6 +257,7 @@ namespace Cassandra
                 //It was already initialized
                 return;
             }
+
             await _initLock.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -227,11 +266,13 @@ namespace Cassandra
                     //It was initialized when waiting on the lock
                     return;
                 }
+
                 if (_initException != null)
                 {
                     //There was an exception that is not possible to recover from
                     throw _initException;
                 }
+
                 _logger.Info("Connecting to cluster using {0}", GetAssemblyInfo());
                 try
                 {
@@ -248,6 +289,7 @@ namespace Cassandra
                 }
                 catch (NoHostAvailableException)
                 {
+                    Configuration.Metrics.IncrementNoHostAvailableErrorCounter();
                     //No host available now, maybe later it can recover from
                     throw;
                 }
@@ -267,6 +309,7 @@ namespace Cassandra
                     //Throw the actual exception for the first time
                     throw;
                 }
+
                 _logger.Info("Cluster Connected using binary protocol version: [" + _serializer.ProtocolVersion + "]");
                 _initialized = true;
                 _metadata.Hosts.Added += OnHostAdded;
@@ -324,9 +367,14 @@ namespace Cassandra
         /// <param name="keyspace">Case-sensitive keyspace name to use</param>
         public async Task<ISession> ConnectAsync(string keyspace)
         {
+            TimerContext? clusterConnectTimer = Configuration.Metrics.GetClusterConnectTimer();
+
             await Init().ConfigureAwait(false);
+            clusterConnectTimer?.Dispose();
+
             var session = new Session(this, Configuration, keyspace, _serializer);
             await session.Init().ConfigureAwait(false);
+
             _connectedSessions.Add(session);
             _logger.Info("Session connected ({0})", session.GetHashCode());
             return session;
@@ -400,6 +448,7 @@ namespace Cassandra
             {
                 return;
             }
+
             // We should prepare all current queries on the host
             PrepareHandler.PrepareAllQueries(h, PreparedQueries.Values, _connectedSessions).Forget();
         }
@@ -425,6 +474,7 @@ namespace Cassandra
             {
                 return;
             }
+
             var sessions = _connectedSessions.ClearAndGet();
             try
             {
@@ -443,8 +493,10 @@ namespace Cassandra
                 {
                     throw ex.InnerExceptions[0];
                 }
+
                 throw;
             }
+
             _metadata.ShutDown(timeoutMs);
             _controlConnection.Dispose();
             Configuration.Timer.Dispose();

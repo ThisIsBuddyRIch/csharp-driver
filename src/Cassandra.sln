@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cassandra.Tests", "Cassandr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cassandra.IntegrationTests", "Cassandra.IntegrationTests\Cassandra.IntegrationTests.csproj", "{6E9E4BBB-7FFD-4337-8639-6F52DCACD591}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestClientConsole", "TestClientConsole\TestClientConsole.csproj", "{B7AA1B66-8CAD-4C3C-87DE-89D18C4F9515}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{6E9E4BBB-7FFD-4337-8639-6F52DCACD591}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E9E4BBB-7FFD-4337-8639-6F52DCACD591}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E9E4BBB-7FFD-4337-8639-6F52DCACD591}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7AA1B66-8CAD-4C3C-87DE-89D18C4F9515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7AA1B66-8CAD-4C3C-87DE-89D18C4F9515}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7AA1B66-8CAD-4C3C-87DE-89D18C4F9515}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7AA1B66-8CAD-4C3C-87DE-89D18C4F9515}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

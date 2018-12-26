@@ -16,9 +16,11 @@
 
 using System;
 using System.Collections.Generic;
+using App.Metrics;
 using Cassandra.Serialization;
 using Cassandra.Tasks;
 using Microsoft.IO;
+using Cassandra.Metrics;
 
 namespace Cassandra
 {
@@ -146,16 +148,19 @@ namespace Cassandra
         /// </summary>
         internal IEnumerable<ITypeSerializer> TypeSerializers { get; set; }
 
+        public MetricsManager Metrics { get; }
+
         internal Configuration() :
             this(Policies.DefaultPolicies,
-                 new ProtocolOptions(),
-                 null,
-                 new SocketOptions(),
-                 new ClientOptions(),
-                 NoneAuthProvider.Instance,
-                 null,
-                 new QueryOptions(),
-                 new DefaultAddressTranslator())
+                new ProtocolOptions(),
+                null,
+                new SocketOptions(),
+                new ClientOptions(),
+                NoneAuthProvider.Instance,
+                null,
+                new QueryOptions(),
+                new DefaultAddressTranslator(),
+                null)
         {
         }
 
@@ -171,16 +176,19 @@ namespace Cassandra
                                IAuthProvider authProvider,
                                IAuthInfoProvider authInfoProvider,
                                QueryOptions queryOptions,
-                               IAddressTranslator addressTranslator)
+                               IAddressTranslator addressTranslator,
+                               IMetricsRoot metricsRoot)
         {
             if (addressTranslator == null)
             {
                 throw new ArgumentNullException("addressTranslator");
             }
+
             if (queryOptions == null)
             {
                 throw new ArgumentNullException("queryOptions");
             }
+
             _policies = policies;
             _protocolOptions = protocolOptions;
             _poolingOptions = poolingOptions;
@@ -195,6 +203,7 @@ namespace Cassandra
             // to create the instance.
             _bufferPool = new RecyclableMemoryStreamManager(16 * 1024, 256 * 1024, ProtocolOptions.MaximumFrameLength);
             _timer = new HashedWheelTimer();
+            Metrics = new MetricsManager(metricsRoot);
         }
 
         /// <summary>
@@ -206,6 +215,7 @@ namespace Cassandra
             {
                 return _poolingOptions;
             }
+
             _poolingOptions = PoolingOptions.Create(protocolVersion);
             return _poolingOptions;
         }

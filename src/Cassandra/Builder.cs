@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using App.Metrics;
 using Cassandra.Serialization;
 
 namespace Cassandra
@@ -52,7 +53,9 @@ namespace Cassandra
         private ProtocolVersion _maxProtocolVersion = ProtocolVersion.MaxSupported;
         private TypeSerializerDefinitions _typeSerializerDefinitions;
         private bool _noCompact;
-
+        private IMetricsRoot _metricsRoot;
+        
+        
         /// <summary>
         ///  The pooling options used by this builder.
         /// </summary>
@@ -117,7 +120,7 @@ namespace Cassandra
                 _authProvider,
                 _authInfoProvider,
                 _queryOptions,
-                _addressTranslator);
+                _addressTranslator, _metricsRoot);
             if (_typeSerializerDefinitions != null)
             {
                 config.TypeSerializers = _typeSerializerDefinitions.Definitions;
@@ -605,6 +608,12 @@ namespace Cassandra
         public Builder WithNoCompact()
         {
             _noCompact = true;
+            return this;
+        }
+
+        public Builder WithMetrics(IMetricsRoot metricsRoot)
+        {
+            _metricsRoot = metricsRoot;
             return this;
         }
 

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Cassandra.Metrics;
 using Cassandra.Requests;
 
 namespace Cassandra
@@ -50,6 +51,7 @@ namespace Cassandra
             get { return _serialConsistency; }
         }
 
+        
         /// <inheritdoc />
         public int PageSize { get; private set; }
 
@@ -123,6 +125,8 @@ namespace Cassandra
         /// </summary>
         public Host Host => _host;
 
+        public MetricsTableMeta MetricsTableMeta { get; set; }
+        
         protected Statement()
         {
 

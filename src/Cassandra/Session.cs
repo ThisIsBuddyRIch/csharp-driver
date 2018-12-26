@@ -21,6 +21,7 @@ using System.Net;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Cassandra.Metrics;
 using Cassandra.Tasks;
 using Cassandra.Requests;
 using Cassandra.Serialization;
@@ -184,6 +185,10 @@ namespace Cassandra
                 var handler = new RequestHandler(this, _serializer);
                 await handler.GetNextConnection(new Dictionary<IPEndPoint, Exception>()).ConfigureAwait(false);
             }
+            
+//            Cluster.Configuration.Metrics?
+//                .MetricsRoot.Measure.Gauge
+//                   .SetValue(DriverMetricsRegistry.ConnectedHostsPerSession(_keyspace), () => GetPools().Length);
         }
 
         /// <summary>
@@ -279,6 +284,9 @@ namespace Cassandra
                 var newPool = new HostConnectionPool(host, Configuration, _serializer);
                 newPool.AllConnectionClosed += OnAllConnectionClosed;
                 newPool.SetDistance(distance);
+//                _cluster.Configuration.Metrics?.MetricsRoot
+//                        .Measure.Gauge.SetValue(DriverMetricsRegistry.ConnectionPerHostAndSession(_keyspace, host.Address.ToString()),
+//                            () => newPool.OpenConnections);
                 return newPool;
             });
             return hostPool;
